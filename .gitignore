@@ -12,3 +12,7 @@ Thumbs.db
 .idea/
 *.swp
 *~
+
+# Build intermediate (tsc compiles list.ts → _dist/list.js → then moves to clis/8891/list.js)
+clis/*/_dist/
+clis/*/node_modules/

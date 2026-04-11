@@ -96,6 +96,52 @@ adapter emits 7 separate `r[]=N` params.
 
 ---
 
+## opencli version requirement (CRITICAL)
+
+**opencli >= v1.7.2 only loads `.js` adapters.** It explicitly rejects `.ts` files:
+
+```
+Ignoring TypeScript adapter C:\...\list.ts - .ts adapters are no longer loaded.
+Rename to .js or convert to JavaScript.
+```
+
+This broke our adapter pack once when opencli auto-upgraded from v1.7.0 (which still loaded .ts via tsx) to v1.7.2. Fix: compile `.ts` to `.js` via tsc and install the `.js` files into `~/.opencli/clis/8891/`.
+
+### Build pipeline (in `clis/8891/`)
+
+| File | Purpose |
+|------|---------|
+| `package.json` | npm scripts: `build`, `install-local`, `clean` |
+| `tsconfig.build.json` | tsc config — ESM / es2022 / resolveJsonModule / skipLibCheck |
+| `_dist/` | Build intermediate (gitignored) |
+| `list.js` / `detail.js` / `electric.js` | Build outputs, **committed** so consumers don't need tsc |
+
+**Build:** `npm install && npm run build`
+- tsc compiles .ts -> `_dist/*.js`
+- Script copies `_dist/*.js` alongside source
+- Cleans `_dist/`
+
+**Install to local runtime:** `npm run install-local`
+- `cp list.js detail.js electric.js brands.json ~/.opencli/clis/8891/`
+- `cp -r db/. ~/.opencli/clis/8891/db/`
+
+**tsc emits type warnings** about `@jackwener/opencli/registry` and `node:fs` being "not found" — these are cosmetic (module resolution paths aren't configured for these). The `.js` output is correct and runs fine. Build script uses `;` (not `&&`) so non-zero tsc exit code doesn't break the copy step.
+
+### Why we commit both .ts and .js
+
+- **`.ts` = source of truth.** Edit it, then run `npm run build`.
+- **`.js` = what opencli actually loads.** Committed so `git clone + cp` works without requiring Node/tsc at install time.
+- `_dist/` and `node_modules/` are gitignored.
+
+### Discovery path reference
+
+Opencli's adapter scan (`node_modules/@jackwener/opencli/dist/src/discovery.js`):
+1. **Fast path**: `cli-manifest.json` in package dir (built-in adapters only, 544 entries, 85 sites).
+2. **Fallback**: `~/.opencli/clis/*/` filesystem scan. Only loads `.js`, explicitly warns + skips `.ts` (line ~175).
+3. **Plugins**: `~/.opencli/plugins/*/` (flat scan, same .js-only rule, line ~229).
+
+---
+
 ## Site quirks (gotchas)
 
 1. **`exsits` typo** — the 排除不在店 param is `exsits=1`, not `exists=1`. 8891's
@@ -372,7 +418,8 @@ Rerun any time 8891 adds new brands/models. `list.ts` loads at module init via
 | `d97f285` | 8 more filters (body/transmission/drivetrain/doors/seats/age/displacement) |
 | `afbe6dd` | Final 6 filters (color + region groups + 4 toggles) → **100% sidebar coverage** |
 | `f36e222` | docs: README rewrite + CLAUDE.md technical reference |
-| TBD | `--search` free-text keyword filter (key= URL param) |
+| `d43c74b` | `--search` free-text keyword filter (key= URL param) |
+| TBD | Build pipeline (tsc .ts to .js) + commit .js artifacts (opencli v1.7.2 compat) |
 
 ---
 

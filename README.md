@@ -4,25 +4,40 @@ Personal [OpenCLI](https://github.com/jackwener/OpenCLI) adapters. Currently shi
 
 ## Install
 
+> **Important:** opencli >= v1.7.2 only loads `.js` adapters (the `.ts` source files are ignored with a warning). This repo ships **both**: `.ts` as source and pre-built `.js` alongside, so a fresh clone works without a build step.
+
 ```bash
 # 1. Prerequisites
 npm install -g @jackwener/opencli
 opencli doctor    # verify daemon + Browser Bridge extension are connected
 
-# 2. Clone + install this adapter pack
+# 2. Clone + install this adapter pack (pre-built .js files are in the repo)
 git clone https://github.com/bareck/opencli-adapters.git ~/opencli-adapters
 mkdir -p ~/.opencli/clis
 cp -r ~/opencli-adapters/clis/* ~/.opencli/clis/
 
-# 3. Verify
+# 3. Verify - should see 3 commands with no "Ignoring TypeScript adapter" warnings
 opencli list | grep 8891
 #   8891
-#     detail [cookie] — …
-#     electric [cookie] — …
-#     list [cookie] — …
+#     detail [cookie] - ...
+#     electric [cookie] - ...
+#     list [cookie] - ...
 ```
 
-Alternatively symlink per-site so `git pull` stays in sync:
+### Rebuild after editing .ts source
+
+If you edit `clis/8891/list.ts` / `detail.ts` / `electric.ts`, rebuild and reinstall:
+
+```bash
+cd ~/opencli-adapters/clis/8891
+npm install           # first time only, fetches typescript + @types/node
+npm run build         # tsc .ts -> .js alongside the source
+npm run install-local # copies .js + brands.json + db/ to ~/.opencli/clis/8891/
+```
+
+tsc will emit type warnings about unresolved `@jackwener/opencli/registry` and `node:fs` imports - these are cosmetic (the global opencli package and Node stdlib aren't in the build's module resolution). The emitted `.js` files are correct and run fine.
+
+Alternatively, if you only want to run (not edit), symlink instead of copy:
 ```bash
 ln -s ~/opencli-adapters/clis/8891 ~/.opencli/clis/8891
 ```

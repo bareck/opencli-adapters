@@ -1,0 +1,15 @@
+{
+  "name": "opencli-adapters-8891",
+  "private": true,
+  "type": "module",
+  "description": "Build pipeline for the 8891 OpenCLI adapter suite",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json ; cp _dist/list.js _dist/detail.js _dist/electric.js . && rm -rf _dist",
+    "install-local": "mkdir -p ~/.opencli/clis/8891/db && cp list.js detail.js electric.js brands.json ~/.opencli/clis/8891/ && cp -r db/. ~/.opencli/clis/8891/db/",
+    "clean": "rm -f list.js detail.js electric.js && rm -rf _dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  }
+}
