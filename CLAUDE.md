@@ -62,6 +62,7 @@ Every sidebar filter, verified via browser click + flight-data inspection.
 | `chair[]=N` | int array | 2-10, 12 directly; 13 = 12座以上 | 乘客數 |
 | `color[]=N` | int array | 0=白 1=紅 2=銀 3=灰 4=黑 5=黃 8=橙 9=綠 10=藍 11=紫 12=其他 13=棕 15=粉 | 車色 (IDs 6/7/14 missing!) |
 | `page=N` | int | 40 items per page | 分頁 |
+| `key=TEXT` | string (URL-encoded) | Free-text search; echoed in `selectData.keyword`; supports Chinese | 關鍵字搜尋 |
 | `exsits=1` | bool | **typo in source** — `exsits` not `exists` | 排除不在店 |
 | `personal=1` | bool | | 個人自售 |
 | `yx=1` | bool | | 8891 嚴選 |
@@ -369,7 +370,9 @@ Rerun any time 8891 adds new brands/models. `list.ts` loads at module init via
 | `935684a` | First 5 new filters (brand/kind/year/region/personal) + Chinese lookup |
 | `aeaabb4` | Power value enumeration (fixed hybrid vs LPG mix-up) |
 | `d97f285` | 8 more filters (body/transmission/drivetrain/doors/seats/age/displacement) |
-| `afbe6dd` | Final 6 filters (color + region groups + 4 toggles) → **100% filter coverage** |
+| `afbe6dd` | Final 6 filters (color + region groups + 4 toggles) → **100% sidebar coverage** |
+| `f36e222` | docs: README rewrite + CLAUDE.md technical reference |
+| TBD | `--search` free-text keyword filter (key= URL param) |
 
 ---
 

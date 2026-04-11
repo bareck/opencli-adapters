@@ -293,6 +293,8 @@ cli({
   args: [
     { name: 'limit', type: 'int', default: 20, help: '結果筆數（每頁 40 筆自動翻頁）' },
     { name: 'page', type: 'int', default: 1, help: '起始頁碼（從 1 開始）' },
+    // 關鍵字搜尋（free text — 對應 8891 URL 參數 key=）
+    { name: 'search', type: 'string', help: '關鍵字搜尋：free text，對應 8891 key= URL 參數。可與其他 filter 疊加，例：--search "Model Y Long Range"' },
     // 廠牌 / 車系（URL path）
     { name: 'brand', type: 'string', help: '廠牌：slug / 英文 / 中文，例：tesla / Tesla / 特斯拉' },
     { name: 'kind', type: 'string', help: '車系：slug 或 name，例：model-y / "Model Y"（需配合 --brand）' },
@@ -484,6 +486,12 @@ cli({
     if (kwargs['premium-only']) params.push('yx=1');
     if (kwargs['recent-only']) params.push('inweek=1');
     if (kwargs['has-video']) params.push('video=1');
+
+    // 關鍵字搜尋（free text）
+    if (kwargs.search) {
+      const q = String(kwargs.search).trim();
+      if (q) params.push(`key=${encodeURIComponent(q)}`);
+    }
 
     const baseQuery = params.join('&');
     const rows: any[] = [];

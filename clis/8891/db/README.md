@@ -119,7 +119,8 @@ and open `cars.db` directly.
 
 | Flag | Notes |
 |------|-------|
-| `--brand NAME` | Slug / English / 中文 (e.g. `tesla` / `Tesla` / `特斯拉`) |
+| `--search TEXT` | Free-text keyword search (8891 `key=`), composes with any other filter |
+| `--brand NAME` | Slug / English / 中文 (e.g. `tesla` / `Tesla` / `特斯拉`) (e.g. `tesla` / `Tesla` / `特斯拉`) |
 | `--kind NAME` | Slug or name (e.g. `model-y` / `"Model Y"`); requires `--brand` |
 | `--power NAME` | Fuel: `純電` / `electric` / `4` etc; multi: `2,4` |
 | `--body NAME` | `轎車`/`休旅車`/`貨車`/`吉普車`/`其他` or `sedan`/`suv`/`truck`/`jeep`/`other` |

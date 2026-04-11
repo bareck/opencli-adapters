@@ -404,6 +404,7 @@ def main() -> int:
     parser.add_argument("--premium-only", action="store_true", help="只看 8891 嚴選")
     parser.add_argument("--recent-only", action="store_true", help="只看最新刊登（~7 天內）")
     parser.add_argument("--has-video", action="store_true", help="只看有影片看車的")
+    parser.add_argument("--search", help="關鍵字搜尋（free text），可與其他 filter 疊加")
     parser.add_argument("--limit", type=int, default=1000, help="list 抓幾筆（預設 1000 大於單次結果）")
     # sync 控制
     parser.add_argument("--list-only", action="store_true", help="只跑 list 階段")
@@ -462,6 +463,8 @@ def main() -> int:
         list_filter += ["--recent-only"]
     if args.has_video:
         list_filter += ["--has-video"]
+    if args.search:
+        list_filter += ["--search", args.search]
     if args.power:
         list_filter += ["--power", args.power]
     if args.min_price is not None:

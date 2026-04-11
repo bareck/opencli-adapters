@@ -33,7 +33,7 @@ ln -s ~/opencli-adapters/clis/8891 ~/.opencli/clis/8891
 
 | Command | Description |
 |---------|-------------|
-| `opencli 8891 list` | Generic listing with **22 filters** covering every sidebar option |
+| `opencli 8891 list` | Generic listing with **23 filters** — every sidebar option plus free-text search |
 | `opencli 8891 detail` | Full per-car info — spec, condition, highlights, photos, seller |
 | `opencli 8891 electric` | Shortcut for 純電車 listings (kept for backward compat) |
 
@@ -49,7 +49,13 @@ opencli 8891 list --power 純電 --limit 3 --format json
 
 ## `8891 list` — full filter reference
 
-All 22 flags are combinable. Names accept Chinese / English / slugs.
+All 23 flags are combinable. Names accept Chinese / English / slugs.
+
+### Free-text search
+
+| Flag | Notes |
+|------|-------|
+| `--search` | Free-text keyword search. Composes with every other filter. Supports English and Chinese. Example: `--search "Model Y Long Range"` or `--search 勞斯萊斯` |
 
 ### Categorical filters
 
@@ -154,6 +160,16 @@ opencli 8891 list --max-price 30 --min-age 10 --recent-only
 **Track daily listings** — new 2025 cars posted today in 北部:
 ```bash
 opencli 8891 list --region 北部 --year-from 2025 --recent-only --has-video
+```
+
+**Free-text search** — any listing whose title mentions "Long Range" Performance, under 150萬:
+```bash
+opencli 8891 list --search "Long Range" --max-price 150
+```
+
+**Chinese keyword** — all Rolls-Royce listings (by Chinese brand name):
+```bash
+opencli 8891 list --search 勞斯萊斯
 ```
 
 ### The "mega combo" — 10 active filters at once
