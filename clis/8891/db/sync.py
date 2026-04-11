@@ -379,6 +379,13 @@ def main() -> int:
     parser.add_argument("--min-price", type=int)
     parser.add_argument("--max-price", type=int)
     parser.add_argument("--in-store-only", action="store_true")
+    # 新增 filter（v2）
+    parser.add_argument("--brand", help="廠牌：slug / 英文 / 中文，例：tesla / Tesla / 特斯拉")
+    parser.add_argument("--kind", help="車系：slug 或 name，例：model-y（需配合 --brand）")
+    parser.add_argument("--year-from", type=int, help="年份下限（含）")
+    parser.add_argument("--year-to", type=int, help="年份上限（含）")
+    parser.add_argument("--region", help="地區：中文縣市名，逗號分隔，例：台北,台中")
+    parser.add_argument("--personal-only", action="store_true", help="只看個人自售")
     parser.add_argument("--limit", type=int, default=1000, help="list 抓幾筆（預設 1000 大於單次結果）")
     # sync 控制
     parser.add_argument("--list-only", action="store_true", help="只跑 list 階段")
@@ -393,6 +400,18 @@ def main() -> int:
 
     # 組 opencli list filter 參數
     list_filter: list[str] = []
+    if args.brand:
+        list_filter += ["--brand", args.brand]
+    if args.kind:
+        list_filter += ["--kind", args.kind]
+    if args.year_from is not None:
+        list_filter += ["--year-from", str(args.year_from)]
+    if args.year_to is not None:
+        list_filter += ["--year-to", str(args.year_to)]
+    if args.region:
+        list_filter += ["--region", args.region]
+    if args.personal_only:
+        list_filter += ["--personal-only"]
     if args.power:
         list_filter += ["--power", args.power]
     if args.min_price is not None:

@@ -1,13 +1,97 @@
 import { cli, Strategy } from '@jackwener/opencli/registry';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 
 // 8891 汽車 - 通用列表命令，支援常見篩選
-// URL 範例：https://auto.8891.com.tw/?power[]=4&price=0_1500000&exsits=1&page=1
 //
 // 已知參數：
-//   power[]=N       燃料類型（4=純電車；其餘值尚未窮舉）
-//   price=min_max   價格範圍，單位 TWD（此 CLI 對外以「萬」計）
-//   exsits=1        排除不在店（8891 官方拼字就是 exsits，非 exists）
-//   page=N          頁碼，每頁 40 筆
+//   /{brand}                廠牌 slug（URL 路徑）
+//   /{brand}/{kind}          廠牌+車系 slug（URL 路徑）
+//   power[]=N                燃料類型（4=純電車）
+//   price=min_max            價格範圍，單位 TWD
+//   y[]=YYYY_YYYY            年份範圍（含頭尾）
+//   r[]=N                    地區代碼（可多個，1=台北市、8=台中市...）
+//   personal=1               只看個人自售
+//   exsits=1                 排除不在店
+//   page=N                   頁碼，每頁 40 筆
+
+// ─── 載入 brands.json（66 品牌 + 870 車系） ────────────────────
+// 用 readFileSync + import.meta.url 而非 `import brands from`，因為 opencli 直接
+// 載入 .ts 並透過 ts-node/jit 編譯，JSON import 不一定被支援。
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+interface Kind {
+  id: number;
+  name: string;
+  slug: string;
+  count: number;
+}
+interface Brand {
+  id: number;
+  en: string;
+  zh: string;
+  slug: string;
+  kinds: Kind[];
+}
+
+const BRANDS: Brand[] = JSON.parse(
+  readFileSync(join(__dirname, 'brands.json'), 'utf-8'),
+);
+
+// 22 個縣市：名稱 → 8891 地區 ID
+const REGION_LOOKUP: Record<string, number> = {
+  '台北市': 1, '台北': 1,
+  '基隆市': 2, '基隆': 2,
+  '新北市': 3, '新北': 3,
+  '新竹市': 4,
+  '新竹縣': 5, '新竹': 4, // 預設「新竹」指新竹市
+  '桃園市': 6, '桃園': 6,
+  '苗栗縣': 7, '苗栗': 7,
+  '台中市': 8, '台中': 8,
+  '彰化縣': 10, '彰化': 10,
+  '南投縣': 11, '南投': 11,
+  '嘉義市': 12,
+  '嘉義縣': 13, '嘉義': 12, // 預設「嘉義」指嘉義市
+  '雲林縣': 14, '雲林': 14,
+  '台南市': 15, '台南': 15,
+  '高雄市': 17, '高雄': 17,
+  '屏東縣': 19, '屏東': 19,
+  '宜蘭縣': 20, '宜蘭': 20,
+  '台東縣': 21, '台東': 21,
+  '花蓮縣': 22, '花蓮': 22,
+  '澎湖縣': 23, '澎湖': 23,
+  '金門縣': 24, '金門': 24,
+  '連江縣': 25, '連江': 25,
+};
+
+// 廠牌查找：接受 slug / 英文名 / 中文名，回傳 Brand 物件
+function resolveBrand(input: string): Brand {
+  const norm = input.toLowerCase().trim();
+  for (const b of BRANDS) {
+    if (b.slug === norm) return b;
+    if (b.en.toLowerCase() === norm) return b;
+    if (b.zh && b.zh === input) return b;
+  }
+  // 提供友善錯誤
+  const samples = BRANDS.slice(0, 5).map((b) => `${b.slug}(${b.zh || b.en})`).join(', ');
+  throw new Error(
+    `Unknown brand: "${input}". Try slug / English / 中文，例：${samples}... (66 brands total)`,
+  );
+}
+
+// 車系查找：scoped to brand；接受 slug 或原始 name
+function resolveKind(brand: Brand, input: string): Kind {
+  const norm = input.toLowerCase().trim().replace(/\s+/g, '-');
+  for (const k of brand.kinds) {
+    if (k.slug === norm) return k;
+    if (k.name.toLowerCase() === input.toLowerCase()) return k;
+  }
+  const samples = brand.kinds.slice(0, 5).map((k) => k.slug).join(', ');
+  throw new Error(
+    `Unknown kind "${input}" under brand ${brand.slug}. Try: ${samples}... (${brand.kinds.length} kinds)`,
+  );
+}
 
 cli({
   site: '8891',
@@ -19,6 +103,17 @@ cli({
   args: [
     { name: 'limit', type: 'int', default: 20, help: '結果筆數（每頁 40 筆自動翻頁）' },
     { name: 'page', type: 'int', default: 1, help: '起始頁碼（從 1 開始）' },
+    // 廠牌 / 車系（URL path）
+    { name: 'brand', type: 'string', help: '廠牌：slug / 英文 / 中文，例：tesla / Tesla / 特斯拉' },
+    { name: 'kind', type: 'string', help: '車系：slug 或 name，例：model-y / "Model Y"（需配合 --brand）' },
+    // 年份範圍
+    { name: 'year-from', type: 'int', help: '年份下限（例：2020，含）' },
+    { name: 'year-to', type: 'int', help: '年份上限（例：2024，含）' },
+    // 地區（中文縣市名，逗號分隔多選）
+    { name: 'region', type: 'string', help: '地區：中文縣市名，逗號分隔多選，例：台北,台中,高雄' },
+    // 個人自售
+    { name: 'personal-only', type: 'bool', default: false, help: '只看個人自售（預設含車商）' },
+    // 既有
     { name: 'power', type: 'string', help: '燃料類型代碼，例：4=純電車（可多值以逗號分隔：4,3）' },
     { name: 'min-price', type: 'int', help: '最低價格（單位：萬）' },
     { name: 'max-price', type: 'int', help: '最高價格（單位：萬）' },
@@ -29,6 +124,19 @@ cli({
     const startPage = Number(kwargs.page) || 1;
     const limit = Number(kwargs.limit) || 20;
     const pagesNeeded = Math.ceil(limit / 40);
+
+    // --- 構 URL path（廠牌 / 車系）---
+    let basePath = '/';
+    if (kwargs.brand) {
+      const brand = resolveBrand(String(kwargs.brand));
+      basePath = `/${brand.slug}`;
+      if (kwargs.kind) {
+        const kind = resolveKind(brand, String(kwargs.kind));
+        basePath = `/${brand.slug}/${kind.slug}`;
+      }
+    } else if (kwargs.kind) {
+      throw new Error('--kind 必須搭配 --brand 一起使用');
+    }
 
     // --- 組 query string ---
     const params: string[] = [];
@@ -46,13 +154,38 @@ cli({
       params.push(`price=${lo}_${hi}`);
     }
 
+    // 年份範圍
+    const yFrom = kwargs['year-from'] != null ? Number(kwargs['year-from']) : null;
+    const yTo = kwargs['year-to'] != null ? Number(kwargs['year-to']) : null;
+    if (yFrom != null || yTo != null) {
+      const lo = yFrom ?? 1990;
+      const hi = yTo ?? new Date().getFullYear() + 1;
+      if (lo > hi) throw new Error(`--year-from (${lo}) 必須 ≤ --year-to (${hi})`);
+      params.push(`y[]=${lo}_${hi}`);
+    }
+
+    // 地區（逗號分隔中文名 → r[]=N 多個）
+    if (kwargs.region) {
+      const names = String(kwargs.region).split(',').map((s) => s.trim()).filter(Boolean);
+      for (const name of names) {
+        const id = REGION_LOOKUP[name];
+        if (id == null) {
+          throw new Error(
+            `Unknown region: "${name}". Valid: ${Object.keys(REGION_LOOKUP).filter((k) => !/^.{2}$/.test(k)).join(', ')}`,
+          );
+        }
+        params.push(`r[]=${id}`);
+      }
+    }
+
+    if (kwargs['personal-only']) params.push('personal=1');
     if (kwargs['in-store-only']) params.push('exsits=1');
 
     const baseQuery = params.join('&');
     const rows: any[] = [];
 
     for (let p = startPage; p < startPage + pagesNeeded; p++) {
-      const url = `https://auto.8891.com.tw/?${baseQuery}${baseQuery ? '&' : ''}page=${p}`;
+      const url = `https://auto.8891.com.tw${basePath}?${baseQuery}${baseQuery ? '&' : ''}page=${p}`;
       await page.goto(url, { waitUntil: 'domcontentloaded' });
 
       const pageRows = await page.evaluate(`(async () => {
