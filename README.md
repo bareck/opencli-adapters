@@ -33,7 +33,6 @@ cd ~/.opencli/clis/8891 && git pull
 
 ```
 ⚠  Ignoring TypeScript adapter ~/.opencli/clis/8891/detail.ts — .ts adapters are no longer loaded.
-⚠  Ignoring TypeScript adapter ~/.opencli/clis/8891/electric.ts — .ts adapters are no longer loaded.
 ⚠  Ignoring TypeScript adapter ~/.opencli/clis/8891/list.ts — .ts adapters are no longer loaded.
 ```
 
