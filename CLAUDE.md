@@ -9,19 +9,27 @@
 ## Architecture
 
 ```
-clis/8891/
-├── list.ts        22 filter flags → build URL → page.goto → evaluate → parse flight data
-├── detail.ts      /usedauto-infos-{id}.html → DOM extraction for single car
-├── electric.ts    Back-compat shortcut that hardcodes power=4
-├── brands.json    66 brands × 870 kinds lookup (generated, 110 KB)
+(repo root = ~/.opencli/clis/8891/ after git clone)
+├── list.ts / list.js      28 filter flags, source + compiled
+├── detail.ts / detail.js  /usedauto-infos-{id}.html, DOM extraction
+├── electric.ts / electric.js  Back-compat shortcut (power=4)
+├── brands.json            66 brands x 870 kinds lookup (generated, 110 KB)
+├── package.json           npm scripts: build / clean
+├── tsconfig.build.json    tsc config
+├── README.md / CLAUDE.md  Docs (ignored by opencli scanner)
+├── .gitignore
 └── db/
-    ├── sync.py            Python 3.9+ stdlib. Calls opencli as subprocess, writes SQLite
+    ├── sync.py            Python 3.9+ stdlib, calls opencli subprocess, writes SQLite
     ├── schema.sql         cars (44 cols) + price_history + view_history + sync_runs
     ├── queries.sql        13 example SQL queries
-    ├── extract-brands.py  One-time rebuild tool for brands.json (curl + regex)
+    ├── extract-brands.py  One-time rebuild for brands.json (curl + regex)
     ├── README.md          User-facing sync docs
     └── .gitignore         *.db *.db-wal *.db-shm (DB files stay local)
 ```
+
+**Install**: `git clone https://github.com/bareck/opencli-adapters.git ~/.opencli/clis/8891`
+**Update**: `cd ~/.opencli/clis/8891 && git pull`
+**Rebuild after edit**: `npm install && npm run build`
 
 **The site**: Next.js App Router with streaming RSC flight data in `window.__next_f`.
 No API auth required for listing/detail pages (Tier 1 public per OpenCLI taxonomy)
@@ -108,7 +116,7 @@ Rename to .js or convert to JavaScript.
 
 This broke our adapter pack once when opencli auto-upgraded from v1.7.0 (which still loaded .ts via tsx) to v1.7.2. Fix: compile `.ts` to `.js` via tsc and install the `.js` files into `~/.opencli/clis/8891/`.
 
-### Build pipeline (in `clis/8891/`)
+### Build pipeline (in the repo root)
 
 | File | Purpose |
 |------|---------|
@@ -124,7 +132,7 @@ This broke our adapter pack once when opencli auto-upgraded from v1.7.0 (which s
 
 **Install to local runtime:** `npm run install-local`
 - `cp list.js detail.js electric.js brands.json ~/.opencli/clis/8891/`
-- `cp -r db/. ~/.opencli/clis/8891/db/`
+- `cp -r db/. ~/.opencli/db/`
 
 **tsc emits type warnings** about `@jackwener/opencli/registry` and `node:fs` being "not found" — these are cosmetic (module resolution paths aren't configured for these). The `.js` output is correct and runs fine. Build script uses `;` (not `&&`) so non-zero tsc exit code doesn't break the copy step.
 
@@ -428,7 +436,7 @@ Rerun any time 8891 adds new brands/models. `list.ts` loads at module init via
 | `a056580` | Thumbnail extraction via `__next_f` flight data (solved lazy-load) |
 | `1c2255e` | 12 more flight-data fields (brand_id, kind_id, day_views, member_id, ...) |
 | `07b365e` | Cross-platform sync.py + gone-protection safety |
-| `d144feb` | Refactor: co-locate `db/` under `clis/8891/db/` |
+| `d144feb` | Refactor: co-locate `db/` under `db/` |
 | `935684a` | First 5 new filters (brand/kind/year/region/personal) + Chinese lookup |
 | `aeaabb4` | Power value enumeration (fixed hybrid vs LPG mix-up) |
 | `d97f285` | 8 more filters (body/transmission/drivetrain/doors/seats/age/displacement) |

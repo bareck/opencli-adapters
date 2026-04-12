@@ -1,4 +1,4 @@
-# Python artifacts (sync.py creates these)
+# Python artifacts
 __pycache__/
 *.pyc
 *.pyo
@@ -13,6 +13,6 @@ Thumbs.db
 *.swp
 *~
 
-# Build intermediate (tsc compiles list.ts → _dist/list.js → then moves to clis/8891/list.js)
-clis/*/_dist/
-clis/*/node_modules/
+# Build intermediate (tsc → _dist/ → then moved to root)
+_dist/
+node_modules/

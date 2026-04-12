@@ -23,10 +23,7 @@ alias them.
 ## Quick start
 
 ```bash
-# 1. The db/ folder lives alongside the .ts adapters under ~/.opencli/clis/8891/db/
-#    If you cloned the repo, just symlink or copy the whole 8891 site into place:
-mkdir -p ~/.opencli/clis
-cp -r clis/8891 ~/.opencli/clis/      # one-time install (or use ln -s)
+# 1. 如果已經按 README 安裝（git clone 到 ~/.opencli/clis/8891），db/ 就已經在位了：
 cd ~/.opencli/clis/8891/db
 
 # 2. First sync — electric cars under 150萬, in-store only (list only, fast)
