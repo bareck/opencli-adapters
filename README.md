@@ -93,7 +93,7 @@ opencli 8891 list --power 純電 --limit 3 --format json
 |------|--------|------|
 | `--brand` | slug / 英文 / 中文 | `tesla` / `Tesla` / `特斯拉` — 共 66 個品牌 |
 | `--kind` | slug / 名稱 | `model-y` / `"Model Y"` — 必須搭配 `--brand` 使用 |
-| `--power` | 燃料名稱或 0-4 | `純電` / `electric` / `4`；多選：`2,4` 或 `hybrid,ev` |
+| `--power` | 燃料名稱或 0-4 | `0`=汽油(gasoline) / `1`=柴油(diesel) / `2`=油電複合(hybrid) / `3`=瓦斯雙燃料(lpg) / `4`=純電(electric)。多選逗號分隔：`--power 2,4` 或 `--power hybrid,ev` |
 | `--body` | 車種 | `轎車`/`休旅車`/`貨車`/`吉普車`/`其他` 或 `sedan`/`suv`/`truck`/`jeep`/`other` |
 | `--color` | 顏色名稱 | `白`/`紅`/`銀`/`灰`/`黑`/`黃`/`橙`/`綠`/`藍`/`紫`/`棕`/`粉` + 英文名稱 |
 | `--transmission` | 變速系統 | `手排`/`自排`/`自手排`/`手自排` 或 `manual`/`automatic`/`amt`/`tiptronic` |
@@ -141,7 +141,7 @@ opencli 8891 list --power 純電 --limit 3 --format json
 
 | Flag | 預設值 | 說明 |
 |------|--------|------|
-| `--limit` | 20 | 自動翻頁；每頁 40 筆 |
+| `--limit` | 20 | 回傳筆數上限。8891 每頁 40 筆，超過 40 筆時會自動翻頁抓取直到達標。例：`--limit 100` 會抓 3 頁 |
 | `--page` | 1 | 起始頁碼；搭配 `--limit` 可跳頁 |
 
 ### 列表輸出欄位
