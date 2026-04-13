@@ -1,4 +1,4 @@
-# opencli-adapters
+# opencli-adapter-8891
 
 個人 [OpenCLI](https://github.com/jackwener/OpenCLI) 轉接器套件。目前提供完整的 **[8891 中古車](https://auto.8891.com.tw/)** （台灣最大中古車交易平台）轉接器，涵蓋所有側欄篩選條件，並附帶可選的本地 SQLite 同步功能。
 
@@ -12,7 +12,7 @@ npm install -g @jackwener/opencli
 opencli doctor    # 確認 daemon 和 Browser Bridge 擴充功能已連線
 
 # 2. 一行安裝 — 直接 clone 到 opencli 的 adapter 目錄
-git clone https://github.com/bareck/opencli-adapters.git ~/.opencli/clis/8891
+git clone https://github.com/bareck/opencli-adapter-8891.git ~/.opencli/clis/8891
 
 # 3. 驗證 — 應該看到 2 個命令，且沒有「Ignoring TypeScript adapter」警告
 opencli list | grep 8891
